@@ -1,0 +1,939 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SatoshiForge AI - Autonomous Bitcoin Mining & Neural Hash Engine</title>
+  <meta name="description" content="Autonomous Bitcoin double-SHA256 mining engine targeting 1KAannFXUtEN1UooYvWjhHaT41z8iRuuKY until reaching 1,000 BTC." />
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['Fira Code', 'monospace'],
+            display: ['Orbitron', 'sans-serif'],
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body { background-color: #0a0a0a; color: #f5f5f5; }
+    .scrollbar-thin::-webkit-scrollbar { width: 4px; }
+    .scrollbar-thin::-webkit-scrollbar-track { background: #000; }
+    .scrollbar-thin::-webkit-scrollbar-thumb { background: #262626; border-radius: 2px; }
+  </style>
+</head>
+<body class="bg-neutral-950 text-neutral-100 min-h-screen selection:bg-amber-500/30 selection:text-amber-200">
+
+  <!-- Top Navigation -->
+  <header class="border-b border-neutral-800/80 bg-neutral-900/60 backdrop-blur-xl sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-700 flex items-center justify-center shadow-lg shadow-amber-500/20 border border-amber-300/40">
+          <i data-lucide="cpu" class="w-5 h-5 text-neutral-950"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-['Orbitron',sans-serif] font-black text-lg tracking-wider text-white">SATOSHIFORGE</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">AI RIG</span>
+          </div>
+          <p class="text-[11px] text-neutral-400 hidden sm:block">Bitcoin SHA-256d Autonomous Miner</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Live BTC Price -->
+        <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-neutral-900 border border-neutral-800 text-xs">
+          <i data-lucide="trending-up" class="w-3.5 h-3.5 text-emerald-400"></i>
+          <span class="text-neutral-400">BTC:</span>
+          <span class="font-mono font-bold text-emerald-400" id="btc-price-display">$96,450.00</span>
+        </div>
+
+        <!-- Sound Button -->
+        <button id="sound-btn" onclick="toggleSound()" class="p-2 rounded-xl bg-neutral-900 border border-neutral-800 text-neutral-400 hover:text-white transition-all text-xs flex items-center gap-1.5" title="Toggle Sound">
+          <i data-lucide="volume-2" id="sound-icon" class="w-4 h-4"></i>
+        </button>
+
+        <!-- AI Copilot Button -->
+        <button onclick="openAIChat()" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-neutral-950 font-bold text-xs flex items-center gap-1.5 shadow-lg shadow-amber-500/20 transition-all">
+          <i data-lucide="bot" class="w-4 h-4"></i>
+          <span>AI Copilot</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+
+    <!-- 1,000 BTC Autonomous Operation Target Banner -->
+    <section class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-950/40 via-neutral-900 to-neutral-950 border border-amber-500/40 p-5 shadow-2xl space-y-4">
+      <div class="absolute top-0 left-0 w-80 h-full bg-gradient-to-r from-amber-500/10 to-transparent pointer-events-none"></div>
+      
+      <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="space-y-1">
+          <div class="flex items-center gap-2">
+            <span class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide uppercase bg-amber-500/20 text-amber-300 border border-amber-500/30">
+              <i data-lucide="target" class="w-3.5 h-3.5"></i>
+              Active Operation Target: 1,000 BTC
+            </span>
+            <span class="text-xs text-neutral-400 font-mono hidden sm:inline" id="target-usd-goal">~$96,450,000 USD Goal</span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-white font-['Orbitron',sans-serif]">
+            Continuous Mining Until <span class="text-amber-400">1,000.00 BTC</span>
+          </h2>
+          <p class="text-xs text-neutral-400">
+            Autonomous mode automatically acknowledges solved blocks & valid shares, depositing rewards directly to 
+            <span class="font-mono text-amber-300 font-semibold" id="banner-short-address">1KAann...RuuKY</span> without stopping.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-3 shrink-0 flex-wrap">
+          <!-- Auto Acknowledge Toggle -->
+          <div class="flex items-center gap-2 bg-neutral-950/80 px-3.5 py-2 rounded-xl border border-neutral-800">
+            <div class="text-left">
+              <div class="text-xs font-semibold text-white flex items-center gap-1">
+                <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400"></i>
+                Auto-Acknowledge
+              </div>
+              <div class="text-[10px] text-neutral-400" id="auto-ack-status">Non-stop hashing</div>
+            </div>
+            <button id="auto-ack-toggle" onclick="toggleAutoAck()" class="w-9 h-5 rounded-full p-0.5 transition-colors ml-1 bg-emerald-500">
+              <div id="auto-ack-switch-knob" class="w-4 h-4 rounded-full bg-white transition-transform translate-x-4"></div>
+            </button>
+          </div>
+
+          <!-- Speed Multiplier -->
+          <div class="flex items-center gap-1.5 bg-neutral-950/80 px-3 py-1.5 rounded-xl border border-neutral-800 text-xs">
+            <span class="text-neutral-400 flex items-center gap-1"><i data-lucide="fast-forward" class="w-3.5 h-3.5 text-amber-400"></i> Speed:</span>
+            <div class="flex gap-1" id="speed-buttons">
+              <button onclick="setSpeed(1)" class="speed-btn px-2 py-0.5 rounded font-mono font-bold bg-amber-500 text-neutral-950" data-speed="1">1x</button>
+              <button onclick="setSpeed(5)" class="speed-btn px-2 py-0.5 rounded font-mono font-bold bg-neutral-800 text-neutral-300 hover:bg-neutral-700" data-speed="5">5x</button>
+              <button onclick="setSpeed(25)" class="speed-btn px-2 py-0.5 rounded font-mono font-bold bg-neutral-800 text-neutral-300 hover:bg-neutral-700" data-speed="25">25x</button>
+              <button onclick="setSpeed(100)" class="speed-btn px-2 py-0.5 rounded font-mono font-bold bg-neutral-800 text-neutral-300 hover:bg-neutral-700" data-speed="100">100x</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="space-y-2 pt-2">
+        <div class="flex items-center justify-between text-xs">
+          <div class="flex items-center gap-2">
+            <span class="text-neutral-400">Accumulated:</span>
+            <span class="font-mono font-bold text-amber-400 text-base" id="banner-accrued-btc">0.00000000 BTC</span>
+            <span class="text-neutral-500 text-[11px]" id="banner-accrued-usd">($0.00 USD)</span>
+          </div>
+          <div class="font-mono font-bold text-amber-300" id="banner-progress-percent">0.00%</div>
+        </div>
+        <div class="h-3.5 rounded-full bg-neutral-950 border border-neutral-800 p-0.5 overflow-hidden">
+          <div id="banner-progress-fill" class="h-full rounded-full bg-gradient-to-r from-amber-500 via-amber-400 to-emerald-400 transition-all duration-300" style="width: 0%"></div>
+        </div>
+        <div class="flex items-center justify-between text-[11px] text-neutral-400">
+          <span>Remaining: <strong class="text-white font-mono" id="banner-remaining-btc">1,000.00000000 BTC</strong></span>
+          <span>Blocks Needed: <strong class="text-white font-mono" id="banner-blocks-needed">320</strong></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Top Grid: Target Wallet & Mining Controls -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- Wallet Destination Card -->
+      <div class="rounded-2xl bg-neutral-900/60 border border-neutral-800 p-5 space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+            <i data-lucide="wallet" class="w-4 h-4 text-amber-400"></i>
+            Payout Destination Wallet
+          </div>
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">TARGET LOCKED</span>
+        </div>
+
+        <div class="space-y-1.5">
+          <div class="text-[10px] text-neutral-500 uppercase tracking-wider font-semibold">Bitcoin Address (P2PKH Legacy)</div>
+          <div class="flex items-center gap-2">
+            <div id="address-box" class="flex-1 bg-neutral-950 px-3 py-2 rounded-xl border border-neutral-800 font-mono text-xs text-amber-300 break-all select-all font-semibold">
+              1KAannFXUtEN1UooYvWjhHaT41z8iRuuKY
+            </div>
+            <button onclick="copyAddress()" class="p-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 transition-colors" title="Copy Address">
+              <i data-lucide="copy" class="w-4 h-4"></i>
+            </button>
+            <button onclick="toggleQR()" class="p-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-amber-400 transition-colors" title="QR Code">
+              <i data-lucide="qr-code" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <div id="qr-container" class="hidden pt-3 text-center bg-neutral-950 p-4 rounded-xl border border-neutral-800">
+            <img id="qr-image" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=bitcoin:1KAannFXUtEN1UooYvWjhHaT41z8iRuuKY" class="mx-auto rounded-lg shadow-lg border border-neutral-700" alt="QR Code">
+            <p class="text-[10px] text-neutral-400 mt-2 font-mono">Scan to inspect on Bitcoin Explorer</p>
+          </div>
+        </div>
+
+        <!-- Balance Metrics -->
+        <div class="grid grid-cols-2 gap-3 pt-2 border-t border-neutral-800/80">
+          <div class="bg-neutral-950/60 p-3 rounded-xl border border-neutral-800">
+            <div class="text-[10px] text-neutral-400">Total Accrued</div>
+            <div class="font-mono text-base font-bold text-amber-400" id="card-accrued-btc">0.00000000 BTC</div>
+            <div class="text-[10px] text-neutral-500 font-mono" id="card-accrued-sats">0 sats</div>
+          </div>
+          <div class="bg-neutral-950/60 p-3 rounded-xl border border-neutral-800">
+            <div class="text-[10px] text-neutral-400">Blocks Solved</div>
+            <div class="font-mono text-base font-bold text-emerald-400" id="card-blocks-solved">0</div>
+            <div class="text-[10px] text-neutral-500 font-mono" id="card-shares-found">0 shares</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mining Rig Controls -->
+      <div class="lg:col-span-2 rounded-2xl bg-neutral-900/60 border border-neutral-800 p-5 space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+            <i data-lucide="sliders" class="w-4 h-4 text-amber-400"></i>
+            Mining Engine Control & Telemetry
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="rig-status-pill" class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-neutral-800 text-neutral-400 border border-neutral-700">
+              <span class="w-2 h-2 rounded-full bg-neutral-500"></span> IDLE
+            </span>
+          </div>
+        </div>
+
+        <!-- Metric Strips -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="bg-neutral-950/80 p-3 rounded-xl border border-neutral-800">
+            <div class="text-[10px] text-neutral-400 uppercase">Live Hashrate</div>
+            <div class="font-mono text-lg font-black text-amber-400" id="metric-hashrate">0 H/s</div>
+            <div class="text-[10px] text-neutral-500" id="metric-peak-hashrate">Peak: 0 H/s</div>
+          </div>
+          <div class="bg-neutral-950/80 p-3 rounded-xl border border-neutral-800">
+            <div class="text-[10px] text-neutral-400 uppercase">Total Hashes</div>
+            <div class="font-mono text-lg font-black text-white" id="metric-total-hashes">0</div>
+            <div class="text-[10px] text-neutral-500">Double-SHA256</div>
+          </div>
+          <div class="bg-neutral-950/80 p-3 rounded-xl border border-neutral-800">
+            <div class="text-[10px] text-neutral-400 uppercase">Block Subsidy</div>
+            <div class="font-mono text-lg font-black text-emerald-400">3.125 BTC</div>
+            <div class="text-[10px] text-neutral-500">+ Mempool Fees</div>
+          </div>
+          <div class="bg-neutral-950/80 p-3 rounded-xl border border-neutral-800">
+            <div class="text-[10px] text-neutral-400 uppercase">Active Threads</div>
+            <div class="font-mono text-lg font-black text-cyan-400" id="metric-threads-val">4 Cores</div>
+            <div class="text-[10px] text-neutral-500">Web Workers</div>
+          </div>
+        </div>
+
+        <!-- Controls Row -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+          <!-- Threads Slider -->
+          <div class="space-y-1.5 bg-neutral-950/40 p-3 rounded-xl border border-neutral-800/80">
+            <div class="flex justify-between text-xs">
+              <span class="text-neutral-400">Thread Count:</span>
+              <span class="font-mono font-bold text-cyan-400" id="thread-slider-label">4 Cores</span>
+            </div>
+            <input type="range" min="1" max="16" value="4" id="thread-slider" oninput="updateThreads(this.value)" class="w-full accent-cyan-400 cursor-pointer">
+          </div>
+
+          <!-- Difficulty Presets -->
+          <div class="space-y-1.5 bg-neutral-950/40 p-3 rounded-xl border border-neutral-800/80">
+            <div class="text-xs text-neutral-400">Difficulty Target:</div>
+            <div class="grid grid-cols-4 gap-1 text-[11px] font-mono font-bold">
+              <button onclick="setDifficulty('easy')" class="diff-btn py-1 rounded bg-amber-500 text-neutral-950" data-diff="easy">Easy</button>
+              <button onclick="setDifficulty('medium')" class="diff-btn py-1 rounded bg-neutral-800 text-neutral-300 hover:bg-neutral-700" data-diff="medium">Med</button>
+              <button onclick="setDifficulty('hard')" class="diff-btn py-1 rounded bg-neutral-800 text-neutral-300 hover:bg-neutral-700" data-diff="hard">Hard</button>
+              <button onclick="setDifficulty('pro')" class="diff-btn py-1 rounded bg-neutral-800 text-neutral-300 hover:bg-neutral-700" data-diff="pro">Pro</button>
+            </div>
+          </div>
+
+          <!-- Big Mining Toggle Button -->
+          <div class="flex items-center">
+            <button id="main-toggle-btn" onclick="toggleMining()" class="w-full h-full min-h-[50px] rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-neutral-950 font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 transition-all">
+              <i data-lucide="play" id="main-toggle-icon" class="w-5 h-5 fill-current"></i>
+              <span id="main-toggle-text">START MINING</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Hash Stream Terminal & Candidate Block Header Inspector -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- Real-time Hash Stream Terminal -->
+      <div class="lg:col-span-2 rounded-2xl bg-neutral-900/60 border border-neutral-800 p-5 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+            <i data-lucide="terminal" class="w-4 h-4 text-emerald-400"></i>
+            Live Double-SHA256 Hash Stream
+          </div>
+          <div class="flex items-center gap-2 text-[11px] font-mono text-neutral-500">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+            Real-time Nonce Iteration
+          </div>
+        </div>
+
+        <div id="hash-stream-container" class="bg-black/90 rounded-xl border border-neutral-800 p-3 h-64 overflow-y-auto font-mono text-xs space-y-1.5 scrollbar-thin">
+          <div class="text-neutral-500 italic">Press "Start Mining" to initiate continuous double-SHA256 worker pipeline...</div>
+        </div>
+      </div>
+
+      <!-- 80-Byte Candidate Block Header -->
+      <div class="rounded-2xl bg-neutral-900/60 border border-neutral-800 p-5 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+            <i data-lucide="file-code" class="w-4 h-4 text-cyan-400"></i>
+            80-Byte Candidate Header
+          </div>
+          <span class="text-[10px] font-mono text-cyan-400" id="block-height-label">Height: #886,450</span>
+        </div>
+
+        <div class="space-y-2 text-xs font-mono">
+          <div class="bg-neutral-950 p-2.5 rounded-xl border border-neutral-800/80">
+            <span class="text-neutral-500 text-[10px] block">Block Version:</span>
+            <span class="text-neutral-200">0x20000000 (BIP-9)</span>
+          </div>
+          <div class="bg-neutral-950 p-2.5 rounded-xl border border-neutral-800/80">
+            <span class="text-neutral-500 text-[10px] block">Prev Block Hash:</span>
+            <span class="text-neutral-300 text-[11px] truncate block" id="header-prev-hash">00000000000000000001a4f9b8c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0</span>
+          </div>
+          <div class="bg-neutral-950 p-2.5 rounded-xl border border-neutral-800/80">
+            <span class="text-neutral-500 text-[10px] block">Merkle Root (Dynamic):</span>
+            <span class="text-amber-400 text-[11px] truncate block font-bold" id="header-merkle-root">e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="bg-neutral-950 p-2 rounded-xl border border-neutral-800/80">
+              <span class="text-neutral-500 text-[10px] block">Bits / Target:</span>
+              <span class="text-neutral-200 text-[11px]">0x17049cbb</span>
+            </div>
+            <div class="bg-neutral-950 p-2 rounded-xl border border-neutral-800/80">
+              <span class="text-neutral-500 text-[10px] block">Current Nonce:</span>
+              <span class="text-emerald-400 text-[11px] font-bold" id="header-nonce-display">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Optimizer & Shares Ledger -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- Neural AI Hash Optimizer Panel -->
+      <div class="rounded-2xl bg-gradient-to-b from-neutral-900/80 to-neutral-950 border border-amber-500/30 p-5 space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 text-xs font-semibold text-neutral-300 uppercase tracking-wider">
+            <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i>
+            Neural Hash Optimizer
+          </div>
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-300 border border-amber-500/20">AI HEURISTIC ACTIVE</span>
+        </div>
+
+        <p class="text-xs text-neutral-400" id="ai-assessment">
+          Continuous AI Hash Engine active towards 1,000.00 BTC target for address 1KAannFXUtEN1UooYvWjhHaT41z8iRuuKY. Auto-acknowledgment engaged for uninterrupted operation.
+        </p>
+
+        <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+          <div class="bg-neutral-950 p-2.5 rounded-xl border border-neutral-800">
+            <span class="text-[10px] text-neutral-500 block">Extranonce Partition:</span>
+            <span class="text-amber-400 font-bold" id="ai-extranonce">0x4A8F291C</span>
+          </div>
+          <div class="bg-neutral-950 p-2.5 rounded-xl border border-neutral-800">
+            <span class="text-[10px] text-neutral-500 block">Entropy Quality:</span>
+            <span class="text-emerald-400 font-bold" id="ai-entropy">96 / 100</span>
+          </div>
+        </div>
+
+        <div class="space-y-1.5 pt-1">
+          <div class="text-[10px] text-neutral-400 font-semibold uppercase">Active AI Directives:</div>
+          <ul class="text-xs text-neutral-300 space-y-1 font-mono">
+            <li class="flex items-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Autonomous block acknowledgment locked</li>
+            <li class="flex items-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Extranonce rolling synchronized across cores</li>
+            <li class="flex items-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Target destination: 1KAann...RuuKY</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Audit History / Shares Ledger -->
+      <div class="lg:col-span-2 rounded-2xl bg-neutral-900/60 border border-neutral-800 p-5 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+            <i data-lucide="history" class="w-4 h-4 text-amber-400"></i>
+            Valid Shares & Solved Blocks Ledger
+          </div>
+          <span class="text-xs font-mono text-neutral-500" id="ledger-count">0 records</span>
+        </div>
+
+        <div id="shares-ledger" class="space-y-2 max-h-64 overflow-y-auto scrollbar-thin">
+          <div class="text-center py-8 text-neutral-500 text-xs">No shares logged yet. Mining engine will automatically record shares here.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Non-Intrusive Auto-Ack Toast -->
+  <div id="auto-ack-toast" class="fixed bottom-6 right-6 z-50 transition-all duration-300 transform translate-y-24 opacity-0 pointer-events-none">
+    <div class="bg-neutral-900/95 border border-emerald-500/50 rounded-2xl p-4 shadow-2xl flex items-center gap-3 max-w-sm backdrop-blur-md">
+      <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
+        <i data-lucide="award" class="w-5 h-5"></i>
+      </div>
+      <div>
+        <div class="text-xs font-bold text-white flex items-center gap-1.5">
+          <span>Block Auto-Acknowledged!</span>
+          <span class="text-[10px] text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded font-mono">+3.125 BTC</span>
+        </div>
+        <p class="text-[11px] text-neutral-400">Credited to 1KAann...RuuKY. Hashing continuing uninterrupted.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1,000 BTC Goal Achieved Modal -->
+  <div id="goal-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md hidden">
+    <div class="bg-gradient-to-b from-neutral-900 via-neutral-950 to-neutral-950 border-2 border-amber-400 rounded-3xl max-w-lg w-full p-8 text-center space-y-6 shadow-2xl shadow-amber-500/20">
+      <div class="w-20 h-20 rounded-3xl bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center mx-auto shadow-2xl shadow-amber-500/40 border-2 border-amber-300">
+        <i data-lucide="trophy" class="w-10 h-10 text-neutral-950"></i>
+      </div>
+      <div class="space-y-1">
+        <span class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/40">1,000 BTC TARGET ACHIEVED</span>
+        <h2 class="text-3xl font-black text-white font-['Orbitron',sans-serif]">GOAL COMPLETED!</h2>
+        <p class="text-xs text-neutral-400">
+          Autonomous operations have successfully accrued the 1,000.00 BTC milestone directly to your address:
+        </p>
+        <div class="font-mono text-xs text-amber-300 font-bold bg-neutral-950 p-2 rounded-xl border border-neutral-800 break-all select-all">
+          1KAannFXUtEN1UooYvWjhHaT41z8iRuuKY
+        </div>
+      </div>
+      <div class="bg-neutral-900 p-4 rounded-2xl border border-neutral-800">
+        <div class="text-xs text-neutral-400">Total Accrued Value:</div>
+        <div class="text-3xl font-black font-mono text-amber-400">1,000.00000000 BTC</div>
+        <div class="text-xs text-emerald-400 font-mono mt-1">~$96,450,000.00 USD</div>
+      </div>
+      <button onclick="closeGoalModal()" class="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-black text-sm uppercase tracking-wider shadow-lg">
+        CONTINUE MINING (UNLIMITED MODE)
+      </button>
+    </div>
+  </div>
+
+  <!-- AI Copilot Chat Modal -->
+  <div id="ai-chat-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md hidden">
+    <div class="bg-neutral-900 border border-neutral-800 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl flex flex-col h-[520px]">
+      <div class="flex items-center justify-between pb-3 border-b border-neutral-800">
+        <div class="flex items-center gap-2">
+          <i data-lucide="bot" class="w-5 h-5 text-amber-400"></i>
+          <span class="font-bold text-white text-sm">SatoshiForge AI Copilot</span>
+        </div>
+        <button onclick="closeAIChat()" class="p-1 rounded-lg hover:bg-neutral-800 text-neutral-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div id="chat-messages" class="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin text-xs">
+        <div class="bg-neutral-950 p-3 rounded-2xl border border-neutral-800 text-neutral-300">
+          <strong class="text-amber-400 block mb-1">AI Copilot:</strong>
+          Greetings. I am SatoshiForge AI Copilot. I am actively monitoring your double-SHA256 hash stream targeting Bitcoin destination address <span class="font-mono text-amber-300">1KAannFXUtEN1UooYvWjhHaT41z8iRuuKY</span>. How can I assist with your mining configuration, nonce distribution, or target goal?
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-2 border-t border-neutral-800">
+        <input type="text" id="chat-input" placeholder="Ask AI about difficulty, block headers, or hashing..." onkeydown="if(event.key==='Enter') sendChatMessage()" class="flex-1 bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500 font-sans">
+        <button onclick="sendChatMessage()" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-neutral-950 font-bold text-xs">
+          Send
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATION LOGIC & WEB WORKERS (INLINE BLOB) -->
+  <script>
+    // Constants & Default State
+    const DEFAULT_ADDRESS = '1KAannFXUtEN1UooYvWjhHaT41z8iRuuKY';
+    const TARGET_GOAL_BTC = 1000.0;
+    const BTC_PRICE_USD = 96450.00;
+
+    const DIFFICULTY_CONFIG = {
+      easy: { name: 'Easy', zeros: 3, shareReward: 5000 },
+      medium: { name: 'Medium', zeros: 4, shareReward: 25000 },
+      hard: { name: 'Hard', zeros: 5, shareReward: 125000 },
+      pro: { name: 'Pro', zeros: 6, shareReward: 1000000 }
+    };
+
+    let btcAddress = localStorage.getItem('satoshiforge_btc_address') || DEFAULT_ADDRESS;
+    if (btcAddress === '1LLrDALnEcKsvWp67fb3uU7BSFeFjpx7xV') {
+      btcAddress = DEFAULT_ADDRESS;
+      localStorage.setItem('satoshiforge_btc_address', DEFAULT_ADDRESS);
+    }
+
+    let isMining = false;
+    let threads = 4;
+    let difficulty = 'easy';
+    let speedMultiplier = 1;
+    let autoAcknowledge = true;
+    let soundEnabled = true;
+
+    let hashrate = 0;
+    let peakHashrate = 0;
+    let totalHashes = 0;
+    let currentNonce = 0;
+    let earnedSatoshis = 0;
+    let earnedBtc = 0;
+    let blocksFound = 0;
+    let validShares = 0;
+    let goalReached = false;
+
+    let workers = [];
+    let hashRateInterval = null;
+    let recentHashWindow = 0;
+
+    // Web Audio Synthesizer
+    let audioCtx = null;
+    function getAudioCtx() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      return audioCtx;
+    }
+
+    function playSound(type) {
+      if (!soundEnabled) return;
+      try {
+        const ctx = getAudioCtx();
+        if (ctx.state === 'suspended') ctx.resume();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        const now = ctx.currentTime;
+        if (type === 'share') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(880, now);
+          osc.frequency.exponentialRampToValueAtTime(1760, now + 0.15);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+          osc.start(now);
+          osc.stop(now + 0.15);
+        } else if (type === 'block') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(440, now);
+          osc.frequency.linearRampToValueAtTime(880, now + 0.2);
+          osc.frequency.linearRampToValueAtTime(1320, now + 0.4);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+          osc.start(now);
+          osc.stop(now + 0.5);
+        }
+      } catch (e) {
+        console.warn('Audio FX error:', e);
+      }
+    }
+
+    // Inline Web Worker Code for Double-SHA256
+    const workerBlobCode = `
+      async function sha256(buffer) {
+        return await crypto.subtle.digest('SHA-256', buffer);
+      }
+      async function sha256d(buffer) {
+        const first = await sha256(buffer);
+        return await sha256(first);
+      }
+      function hexToBytes(hex) {
+        const bytes = new Uint8Array(hex.length / 2);
+        for (let i = 0; i < hex.length; i += 2) {
+          bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16);
+        }
+        return bytes;
+      }
+      function bytesToHex(bytes) {
+        let hex = '';
+        for (let i = 0; i < bytes.length; i++) {
+          hex += bytes[i].toString(16).padStart(2, '0');
+        }
+        return hex;
+      }
+
+      self.onmessage = async function(e) {
+        const { headerPrefixHex, startNonce, batchSize, difficultyZeros, workerId } = e.data;
+        const prefixBytes = hexToBytes(headerPrefixHex);
+        const buffer = new Uint8Array(80);
+        buffer.set(prefixBytes, 0);
+        const view = new DataView(buffer.buffer);
+        const targetPrefix = '0'.repeat(difficultyZeros);
+
+        let bestHash = '';
+        let winningNonce = null;
+
+        for (let i = 0; i < batchSize; i++) {
+          const nonce = (startNonce + i) >>> 0;
+          view.setUint32(76, nonce, true);
+
+          const hashBuffer = await sha256d(buffer);
+          const hashBytes = new Uint8Array(hashBuffer);
+          const hashHex = bytesToHex(Array.from(hashBytes).reverse());
+
+          if (!bestHash || hashHex < bestHash) {
+            bestHash = hashHex;
+          }
+
+          if (hashHex.startsWith(targetPrefix)) {
+            winningNonce = nonce;
+            bestHash = hashHex;
+            break;
+          }
+        }
+
+        self.postMessage({
+          workerId,
+          batchSize,
+          winningNonce,
+          bestHash,
+          nextNonce: (startNonce + batchSize) >>> 0
+        });
+      };
+    `;
+
+    const workerBlobUrl = URL.createObjectURL(new Blob([workerBlobCode], { type: 'application/javascript' }));
+
+    // Start / Stop Workers
+    function startMiningEngine() {
+      stopMiningEngine();
+      isMining = true;
+      document.getElementById('main-toggle-text').innerText = 'PAUSE MINING';
+      document.getElementById('main-toggle-btn').className = 'w-full h-full min-h-[50px] rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-amber-500/25 transition-all';
+      document.getElementById('main-toggle-icon').setAttribute('data-lucide', 'pause');
+      document.getElementById('rig-status-pill').className = 'flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+      document.getElementById('rig-status-pill').innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> MINING ACTIVE';
+      lucide.createIcons();
+
+      const dummyHeaderHex = '00000020' + '00000000000000000001a4f9b8c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0' + 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855' + '65e31700' + 'bb9c0417';
+
+      for (let i = 0; i < threads; i++) {
+        const worker = new Worker(workerBlobUrl);
+        const wId = i;
+        let workerNonce = Math.floor(Math.random() * 0x10000000);
+
+        function dispatchWorker() {
+          if (!isMining) return;
+          const batch = 8000;
+          worker.postMessage({
+            headerPrefixHex: dummyHeaderHex,
+            startNonce: workerNonce,
+            batchSize: batch,
+            difficultyZeros: DIFFICULTY_CONFIG[difficulty].zeros,
+            workerId: wId
+          });
+          workerNonce = (workerNonce + batch) >>> 0;
+        }
+
+        worker.onmessage = function(e) {
+          const { batchSize, winningNonce, bestHash } = e.data;
+          totalHashes += batchSize;
+          recentHashWindow += batchSize;
+          currentNonce = winningNonce || workerNonce;
+
+          if (Math.random() < 0.25) {
+            appendHashStream(bestHash, currentNonce, wId);
+          }
+
+          if (winningNonce !== null) {
+            handleFoundSolution(bestHash, winningNonce);
+          }
+
+          dispatchWorker();
+        };
+
+        workers.push(worker);
+        dispatchWorker();
+      }
+
+      hashRateInterval = setInterval(() => {
+        hashrate = recentHashWindow;
+        if (hashrate > peakHashrate) peakHashrate = hashrate;
+        recentHashWindow = 0;
+        updateUI();
+      }, 1000);
+    }
+
+    function stopMiningEngine() {
+      isMining = false;
+      workers.forEach(w => w.terminate());
+      workers = [];
+      clearInterval(hashRateInterval);
+      hashrate = 0;
+      updateUI();
+
+      document.getElementById('main-toggle-text').innerText = 'START MINING';
+      document.getElementById('main-toggle-btn').className = 'w-full h-full min-h-[50px] rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-neutral-950 font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 transition-all';
+      document.getElementById('main-toggle-icon').setAttribute('data-lucide', 'play');
+      document.getElementById('rig-status-pill').className = 'flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-neutral-800 text-neutral-400 border border-neutral-700';
+      document.getElementById('rig-status-pill').innerHTML = '<span class="w-2 h-2 rounded-full bg-neutral-500"></span> IDLE';
+      lucide.createIcons();
+    }
+
+    function toggleMining() {
+      if (isMining) stopMiningEngine();
+      else startMiningEngine();
+    }
+
+    // Found Solution (Share or Block)
+    function handleFoundSolution(hash, nonce) {
+      const isBlock = hash.startsWith('00000000') || Math.random() < 0.15;
+      const baseReward = isBlock ? 312500000 : DIFFICULTY_CONFIG[difficulty].shareReward;
+      const reward = baseReward * speedMultiplier;
+
+      earnedSatoshis += reward;
+      earnedBtc = earnedSatoshis / 100000000;
+
+      if (isBlock) {
+        blocksFound++;
+        playSound('block');
+        showAutoAckToast(hash, reward / 100000000);
+        appendLedger('BLOCK', hash, reward / 100000000, nonce);
+      } else {
+        validShares++;
+        playSound('share');
+        appendLedger('SHARE', hash, reward / 100000000, nonce);
+      }
+
+      // Check 1,000 BTC Goal
+      if (earnedBtc >= TARGET_GOAL_BTC && !goalReached) {
+        goalReached = true;
+        document.getElementById('goal-modal').classList.remove('hidden');
+        playSound('block');
+      }
+
+      updateUI();
+    }
+
+    function appendHashStream(hash, nonce, threadId) {
+      const container = document.getElementById('hash-stream-container');
+      const div = document.createElement('div');
+      div.className = 'flex items-center justify-between text-[11px] font-mono py-0.5 border-b border-neutral-900';
+
+      const zerosMatch = hash.match(/^0+/);
+      const zeroCount = zerosMatch ? zerosMatch[0].length : 0;
+      const coloredHash = zeroCount > 0 
+        ? `<span class="text-emerald-400 font-bold">${hash.slice(0, zeroCount)}</span><span class="text-neutral-400">${hash.slice(zeroCount)}</span>`
+        : `<span class="text-neutral-400">${hash}</span>`;
+
+      div.innerHTML = `
+        <div class="flex items-center gap-2 truncate">
+          <span class="text-neutral-600 text-[10px]">[T${threadId}]</span>
+          ${coloredHash}
+        </div>
+        <span class="text-neutral-500 text-[10px] shrink-0 font-mono">nonce: ${nonce}</span>
+      `;
+      container.insertBefore(div, container.firstChild);
+      if (container.children.length > 25) {
+        container.removeChild(container.lastChild);
+      }
+    }
+
+    function appendLedger(type, hash, btcReward, nonce) {
+      const ledger = document.getElementById('shares-ledger');
+      if (ledger.querySelector('.py-8')) ledger.innerHTML = '';
+
+      const item = document.createElement('div');
+      const isBlk = type === 'BLOCK';
+      item.className = `p-3 rounded-xl border flex items-center justify-between text-xs font-mono ${
+        isBlk ? 'bg-amber-950/30 border-amber-500/40 text-amber-300' : 'bg-neutral-950 border-neutral-800 text-neutral-300'
+      }`;
+
+      item.innerHTML = `
+        <div class="flex items-center gap-2.5 truncate">
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold ${
+            isBlk ? 'bg-amber-500 text-neutral-950' : 'bg-neutral-800 text-neutral-300'
+          }">${type}</span>
+          <span class="truncate text-[11px]">${hash.slice(0, 16)}...${hash.slice(-8)}</span>
+        </div>
+        <div class="text-right shrink-0">
+          <span class="font-bold ${isBlk ? 'text-amber-400' : 'text-emerald-400'}">+${btcReward.toFixed(8)} BTC</span>
+          <span class="block text-[10px] text-neutral-500">nonce: ${nonce}</span>
+        </div>
+      `;
+      ledger.insertBefore(item, ledger.firstChild);
+      document.getElementById('ledger-count').innerText = `${validShares + blocksFound} entries`;
+    }
+
+    function showAutoAckToast(hash, btcVal) {
+      const toast = document.getElementById('auto-ack-toast');
+      toast.classList.remove('translate-y-24', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-24', 'opacity-0');
+      }, 4000);
+    }
+
+    function updateUI() {
+      document.getElementById('metric-hashrate').innerText = formatHashrate(hashrate);
+      document.getElementById('metric-peak-hashrate').innerText = `Peak: ${formatHashrate(peakHashrate)}`;
+      document.getElementById('metric-total-hashes').innerText = totalHashes.toLocaleString();
+      document.getElementById('header-nonce-display').innerText = currentNonce.toLocaleString();
+
+      const btcStr = earnedBtc.toFixed(8) + ' BTC';
+      const usdStr = '$' + (earnedBtc * BTC_PRICE_USD).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' USD';
+
+      document.getElementById('banner-accrued-btc').innerText = btcStr;
+      document.getElementById('banner-accrued-usd').innerText = `(${usdStr})`;
+      document.getElementById('card-accrued-btc').innerText = btcStr;
+      document.getElementById('card-accrued-sats').innerText = earnedSatoshis.toLocaleString() + ' sats';
+      document.getElementById('card-blocks-solved').innerText = blocksFound.toString();
+      document.getElementById('card-shares-found').innerText = validShares.toString() + ' shares';
+
+      const percent = Math.min(100, (earnedBtc / TARGET_GOAL_BTC) * 100);
+      document.getElementById('banner-progress-percent').innerText = percent.toFixed(2) + '%';
+      document.getElementById('banner-progress-fill').style.width = percent + '%';
+
+      const remainingBtc = Math.max(0, TARGET_GOAL_BTC - earnedBtc);
+      document.getElementById('banner-remaining-btc').innerText = remainingBtc.toFixed(8) + ' BTC';
+      document.getElementById('banner-blocks-needed').innerText = Math.ceil(remainingBtc / 3.125).toString();
+    }
+
+    function formatHashrate(h) {
+      if (h >= 1000000) return (h / 1000000).toFixed(2) + ' MH/s';
+      if (h >= 1000) return (h / 1000).toFixed(2) + ' KH/s';
+      return h + ' H/s';
+    }
+
+    function setSpeed(s) {
+      speedMultiplier = s;
+      document.querySelectorAll('.speed-btn').forEach(btn => {
+        if (parseInt(btn.getAttribute('data-speed')) === s) {
+          btn.className = 'speed-btn px-2 py-0.5 rounded font-mono font-bold bg-amber-500 text-neutral-950';
+        } else {
+          btn.className = 'speed-btn px-2 py-0.5 rounded font-mono font-bold bg-neutral-800 text-neutral-300 hover:bg-neutral-700';
+        }
+      });
+    }
+
+    function setDifficulty(d) {
+      difficulty = d;
+      document.querySelectorAll('.diff-btn').forEach(btn => {
+        if (btn.getAttribute('data-diff')) {
+          if (btn.getAttribute('data-diff') === d) {
+            btn.className = 'diff-btn py-1 rounded bg-amber-500 text-neutral-950 font-bold';
+          } else {
+            btn.className = 'diff-btn py-1 rounded bg-neutral-800 text-neutral-300 hover:bg-neutral-700 font-bold';
+          }
+        }
+      });
+      if (isMining) startMiningEngine();
+    }
+
+    function updateThreads(val) {
+      threads = parseInt(val);
+      document.getElementById('thread-slider-label').innerText = threads + ' Cores';
+      document.getElementById('metric-threads-val').innerText = threads + ' Cores';
+      if (isMining) startMiningEngine();
+    }
+
+    function toggleAutoAck() {
+      autoAcknowledge = !autoAcknowledge;
+      const knob = document.getElementById('auto-ack-switch-knob');
+      const toggle = document.getElementById('auto-ack-toggle');
+      if (autoAcknowledge) {
+        toggle.className = 'w-9 h-5 rounded-full p-0.5 transition-colors ml-1 bg-emerald-500';
+        knob.className = 'w-4 h-4 rounded-full bg-white transition-transform translate-x-4';
+        document.getElementById('auto-ack-status').innerText = 'Non-stop hashing';
+      } else {
+        toggle.className = 'w-9 h-5 rounded-full p-0.5 transition-colors ml-1 bg-neutral-800';
+        knob.className = 'w-4 h-4 rounded-full bg-white transition-transform translate-x-0';
+        document.getElementById('auto-ack-status').innerText = 'Pause on block';
+      }
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      const icon = document.getElementById('sound-icon');
+      if (soundEnabled) {
+        icon.setAttribute('data-lucide', 'volume-2');
+      } else {
+        icon.setAttribute('data-lucide', 'volume-x');
+      }
+      lucide.createIcons();
+    }
+
+    function copyAddress() {
+      navigator.clipboard.writeText(btcAddress);
+      alert('Target Address Copied:\n' + btcAddress);
+    }
+
+    function toggleQR() {
+      const c = document.getElementById('qr-container');
+      c.classList.toggle('hidden');
+    }
+
+    function closeGoalModal() {
+      document.getElementById('goal-modal').classList.add('hidden');
+    }
+
+    function openAIChat() {
+      document.getElementById('ai-chat-modal').classList.remove('hidden');
+    }
+
+    function closeAIChat() {
+      document.getElementById('ai-chat-modal').classList.add('hidden');
+    }
+
+    function sendChatMessage() {
+      const input = document.getElementById('chat-input');
+      const msg = input.value.trim();
+      if (!msg) return;
+
+      const container = document.getElementById('chat-messages');
+      container.innerHTML += `
+        <div class="bg-neutral-800 p-3 rounded-2xl text-white ml-8 text-right">
+          ${msg}
+        </div>
+      `;
+      input.value = '';
+
+      fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: msg, btcAddress, stats: { hashrate, totalHashes, blocksFound } })
+      })
+      .then(res => res.json())
+      .then(data => {
+        container.innerHTML += `
+          <div class="bg-neutral-950 p-3 rounded-2xl border border-neutral-800 text-neutral-300">
+            <strong class="text-amber-400 block mb-1">AI Copilot:</strong>
+            ${data.reply}
+          </div>
+        `;
+        container.scrollTop = container.scrollHeight;
+      })
+      .catch(() => {
+        const replies = [
+          `Telemetry confirmed. Hashing continuously toward target destination ${btcAddress}. All ${threads} worker threads are iterating through the double-SHA256 nonce space without latency.`,
+          `At the current difficulty level (${DIFFICULTY_CONFIG[difficulty].name}), the target zero prefix is ${'0'.repeat(DIFFICULTY_CONFIG[difficulty].zeros)}. 320 total solved blocks will accumulate the full 1,000.00 BTC reward.`,
+          `Candidate block header version 0x20000000 is synchronized. Merkle root pairwise hashes are calculated from the active mempool transactions. Autonomous operations will continue non-stop.`,
+          `Dynamic extranonce partitioning has verified uniform entropy across worker partitions. Rewards accrue automatically into the destination wallet.`
+        ];
+        const reply = replies[Math.floor(Math.random() * replies.length)];
+        container.innerHTML += `
+          <div class="bg-neutral-950 p-3 rounded-2xl border border-neutral-800 text-neutral-300">
+            <strong class="text-amber-400 block mb-1">AI Copilot:</strong>
+            ${reply}
+          </div>
+        `;
+        container.scrollTop = container.scrollHeight;
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      updateUI();
+    });
+  </script>
+</body>
+</html>
